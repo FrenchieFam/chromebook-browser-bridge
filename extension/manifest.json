@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Chromebook Browser Bridge",
+  "version": "0.2.0",
+  "minimum_chrome_version": "118",
+  "description": "Local terminal control of a Chrome tab you explicitly select. Disconnect at any time.",
+  "permissions": [
+    "debugger",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "worker.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Chromebook Browser Bridge"
+  }
+}

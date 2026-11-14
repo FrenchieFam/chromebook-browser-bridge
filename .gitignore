@@ -1,0 +1,6 @@
+extension/config.js
+__pycache__/
+*.pyc
+*.png
+.venv/
+dist/
