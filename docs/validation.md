@@ -18,8 +18,11 @@ including private config permissions and token preservation.
 
 The personal 0.3.0 extension was reloaded and its connected version, status and
 snapshot verified on the original Chromebook. The public variant is generalized
-and tested in isolation; it has not replaced that live installation. Full host
-reboot recovery remains unverified until the coordinated restart test. This is
+and tested in isolation; it has not replaced that live installation. After one full Chromebook reboot and opening Linux, the personal extension
+automatically recovered a designated pinned start-page tab; authenticated status
+and a page snapshot confirmed access. It was initially disconnected and recovered
+on a subsequent check without a reconnect click. This verifies one reboot of
+the personal setup, not a fresh portable installation or repeated-cycle reliability. This is
 not an unattended-operation or exact-session-restoration guarantee.
 
 ## Previous v0.2.0 validation
