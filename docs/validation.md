@@ -1,4 +1,4 @@
-# Validation record — v0.3.0 candidate
+# Validation record — v0.3.0
 
 Date: 2026-11-14.
 
