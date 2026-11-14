@@ -52,7 +52,7 @@ def install(args):
  print('Extension folder:',ext)
  print('Endpoint: http://'+host+':8765')
  print('Pairing token generated or preserved locally; not printed.')
- print('Load/reload the extension in chrome://extensions, open a normal page, and Connect this tab.')
+ print('Load/reload the extension in chrome://extensions. Connect this tab for session-only access, or opt into a persistent work tab.')
  if not args.start:print('To start: systemctl --user daemon-reload && systemctl --user enable --now chromebook-browser-bridge.service')
  return {'app':app,'extension':ext,'token_file':token_file}
 

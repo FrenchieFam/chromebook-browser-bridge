@@ -48,5 +48,21 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(self.call('/command',{'action':'click','args':{'selector':'button'}})[0],409)
     def test_orphan_result_not_accepted(self):
         self.assertFalse(self.call('/result',{'id':'missing','result':{'ok':True}})[1]['accepted'])
+    def test_malformed_inputs_rejected_without_crashing(self):
+        for path,body in [('/result',{'id':[]}),('/command',{'action':[]}),('/heartbeat',{'tabId':[]})]:
+            self.assertEqual(self.call(path,body)[0],400)
+        self.assertEqual(self.call('/status',token='é')[0],403)
+    def test_queued_command_cannot_follow_connection_change(self):
+        self.call('/heartbeat',{'tabId':7})
+        output=[]
+        thread=threading.Thread(target=lambda:output.append(self.call('/command',{'action':'snapshot'})))
+        thread.start()
+        job=self.state.jobs.get(timeout=2)
+        self.state.jobs.put(job)
+        self.call('/heartbeat',{'tabId':None})
+        self.call('/heartbeat',{'tabId':8})
+        thread.join(3)
+        self.assertFalse(output[0][1]['ok'])
+        self.assertIsNone(self.call('/poll')[1]['job'])
 
 if __name__=='__main__':unittest.main()

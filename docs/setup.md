@@ -39,8 +39,10 @@ use the new paired extension when intentionally migrating.
 ## Chrome's connection
 
 Clicking Connect this tab attaches the debugger only to the active, ordinary web
-tab. Canceling the banner disconnects it. No automatic attachment after an explicit
-stop is implemented. Loading code into Chrome requires the extension page's
+tab and disables persistent mode. For opt-in recovery, choose a non-sensitive
+start page and Start persistent work tab instead. It recovers only that dedicated
+pinned tab after Linux is reachable, never the active tab. Disconnect or canceling
+the banner pauses recovery until the owner explicitly enables it again. Loading code into Chrome requires the extension page's
 Developer mode switch, not ChromeOS boot Developer Mode.
 
 If you edit the extension source, rerun the installer before reloading Chrome's

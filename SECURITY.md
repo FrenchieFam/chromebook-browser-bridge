@@ -10,12 +10,24 @@ network service.
 - Token checks on status, commands, polling, results, and heartbeats.
 - Browser origins are restricted to extension origins; normal page origins are rejected.
 - No unauthenticated remote-debugging socket.
-- Only the tab explicitly selected by the owner is attached.
+- Only the owner-selected tab or the explicitly enabled dedicated persistent work tab is attached.
 - Disconnect/cancel stops access; explicit stops are not silently reversed.
-- A bounded command queue, request-size limit, command expiration, and no automatic retry.
+- A bounded command queue, request-size limit, command expiration, and no automatic action retry.
+- Pending commands are canceled when heartbeat tab identity changes; the worker also checks its original tab and connection intent before in-flight actions.
+- HTTP I/O timeouts and malformed JSON/identifier/authentication rejection.
 - Stable target measurement and an occlusion check before coordinate clicks.
 - Password input typing is refused. Screenshots/page text can still contain sensitive information.
 - No arbitrary shell or general JavaScript execution tool in the MCP interface.
+
+## Persistent mode
+
+Persistence is off by default and requires an explicit popup action. A dedicated
+pinned background work tab may be restored or replaced after closing/crashing or
+Chrome restart. It never follows the active tab. Disconnect and banner cancellation
+persist a pause and clear recovery alarms; session-only Connect also disables it.
+Start URLs reject embedded credentials, query strings and fragments. Stored tab IDs
+are reused only for the saved pinned start page, since Chrome can recycle IDs.
+Recovery is not an exactly-once action guarantee or a promise to restore a chat.
 
 ## Boundaries
 

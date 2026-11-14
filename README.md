@@ -25,8 +25,11 @@ ChromeOS desktop-control system or an official OpenAI/Google integration.
 | `browser_key` | Enter, Escape, Tab, Backspace, ArrowUp, ArrowDown |
 | `browser_viewport` | Set a test viewport or restore the normal view |
 
-The owner explicitly connects a tab. Chrome shows a debugging banner, and either
-the extension's Disconnect button or canceling the banner stops access.
+The default is session-only: the owner explicitly connects a tab. An optional
+persistent mode creates a designated pinned work tab and recovers it when Chrome
+or Linux becomes available again. Chrome shows a debugging banner in both modes.
+Disconnect or canceling the banner pauses automatic recovery until explicitly
+re-enabled. Persistent mode never follows whichever tab you happen to use.
 
 ## Requirements
 
@@ -69,9 +72,28 @@ The installer prints the extension path. If Downloads sharing is different, pass
 ChromeOS must be stored somewhere ChromeOS can read.
 
 The bridge service starts with the Linux user session. It does not boot Linux at
-Chromebook startup or automatically reconnect a Chrome tab. Codex may need to
+Chromebook startup. Session-only tabs require a new connection; opt-in persistent
+work tabs recover after Linux is reachable. Codex may need to
 reload its MCP configuration or start a new session to discover a newly added
 server. The command-line client remains available immediately.
+
+### Optional persistent work tab
+
+In the extension popup, choose an http/https start page and click **Start
+persistent work tab**. The default example page can be changed to the page you
+want to work in. Start URLs must not contain credentials, query strings or fragments.
+
+The extension creates one pinned background work tab, checks recovery once a
+minute, and attempts recovery after Chrome startup. Linux must be opened first
+so the bridge is reachable. Closing the work tab lets persistent mode create a
+replacement at the start page. A navigated/restored old work tab may remain beside
+that replacement; exact session/conversation restoration is not promised.
+
+**Disconnect and pause automatic recovery** and Chrome's banner Cancel button
+both persist a pause. To resume, explicitly start persistent mode again. Choosing
+**Connect this tab — this session** disables persistence and connects only that tab.
+The added `tabs` permission supports dedicated-tab lookup/creation; `alarms`
+schedules recovery. The mode is off until explicitly enabled.
 
 ### Try it
 
@@ -114,7 +136,9 @@ prove that an action failed; inspect before retrying a submission.
 
 ## Reconnect, update, and remove
 
-After restarting the Chromebook: open Linux, then connect a tab from the extension.
+After restarting the Chromebook: open Linux. Session-only mode needs a new tab
+connection; previously enabled persistent mode retries its designated work tab.
+An explicit Disconnect/banner cancellation keeps recovery paused.
 If the VM IP changes, rerun the installer from your checkout and reload the
 extension. An existing pairing token is preserved. You can specify an IPv4 address
 with `--endpoint-host`; the installer otherwise reads the Linux route without
@@ -156,11 +180,12 @@ website content trustworthy or remove account authorization requirements.
 
 ```sh
 python3 -m unittest discover -p 'test_*.py' -v
-node --test test_worker.cjs
+node --test test_worker.cjs test_persistence.cjs
 ```
 
 The source tests cover HTTP authentication/origins, command/result delivery,
-MCP messages and tool arguments, installer token preservation, and click guards.
+MCP messages and tool arguments, installer token preservation, click guards,
+persistence recovery, explicit pauses, and queued/in-flight connection changes.
 The original live setup also passed dropdown/checkbox interactions, screenshots,
 and 390×844 / 1280×900 viewport checks on its test site.
 

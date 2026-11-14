@@ -1,13 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Chromebook Browser Bridge",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "minimum_chrome_version": "118",
-  "description": "Local terminal control of a Chrome tab you explicitly select. Disconnect at any time.",
+  "description": "Local control of a chosen tab or an optional persistent pinned work tab. Disconnect or cancel the banner to pause.",
   "permissions": [
     "debugger",
     "activeTab",
-    "storage"
+    "storage",
+    "tabs",
+    "alarms"
   ],
   "host_permissions": [
     "http://localhost/*",

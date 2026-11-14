@@ -15,12 +15,15 @@ class State:
         self.seen = 0
 
 class Handler(BaseHTTPRequestHandler):
+    def setup(self):
+        super().setup()
+        self.connection.settimeout(10)
     def log_message(self, *args): pass
     def origin_ok(self):
         origin = self.headers.get('Origin', '')
         return not origin or (origin.startswith('chrome-extension://') and len(origin.split('://')[-1]) == 32 and all(c in 'abcdefghijklmnop' for c in origin.split('://')[-1]))
     def authorized(self):
-        return self.origin_ok() and hmac.compare_digest(self.headers.get('Authorization', ''), 'Bearer ' + self.server.state.token)
+        return self.origin_ok() and hmac.compare_digest(self.headers.get('Authorization', '').encode(), ('Bearer ' + self.server.state.token).encode())
     def reply(self, code, payload):
         data = json.dumps(payload).encode()
         self.send_response(code)
@@ -64,14 +67,23 @@ class Handler(BaseHTTPRequestHandler):
             if not 0 < size <= 16_000_000: raise ValueError('Invalid body size')
             body = json.loads(self.rfile.read(size))
             if not isinstance(body, dict): raise ValueError('Expected JSON object')
-        except (ValueError, json.JSONDecodeError): return self.reply(400, {'error': 'Invalid JSON object or body size'})
+        except (ValueError, UnicodeError): return self.reply(400, {'error': 'Invalid JSON object or body size'})
         state = self.server.state
         if self.path == '/heartbeat':
+            if body.get('tabId') is not None and (type(body['tabId']) is not int or body['tabId'] < 0):
+                return self.reply(400, {'error': 'Invalid tab ID'})
             with state.lock:
+                if body.get('tabId') != state.peer.get('tabId'):
+                    for pending in state.pending.values():
+                        pending['result'] = {'ok': False, 'error': 'Connection changed; inspect a fresh snapshot'}
+                        pending['event'].set()
+                    state.pending.clear()
                 state.seen = time.time()
                 state.peer = {k: body.get(k) for k in ('tabId', 'title', 'url', 'extensionVersion', 'lastError', 'detachReason')}
             return self.reply(200, {'ok': True})
         if self.path == '/result':
+            if not isinstance(body.get('id'), str):
+                return self.reply(400, {'error': 'Invalid result ID'})
             with state.lock:
                 pending = state.pending.get(body.get('id'))
                 if pending:
@@ -79,7 +91,7 @@ class Handler(BaseHTTPRequestHandler):
                     pending['event'].set()
             return self.reply(200, {'accepted': pending is not None})
         if self.path != '/command': return self.reply(404, {'error': 'Unknown route'})
-        if body.get('action') not in ACTIONS or not isinstance(body.get('args', {}), dict):
+        if not isinstance(body.get('action'), str) or body.get('action') not in ACTIONS or not isinstance(body.get('args', {}), dict):
             return self.reply(400, {'error': 'Unsupported action or invalid arguments'})
         if len(json.dumps(body)) > 100_000: return self.reply(400, {'error': 'Command too large'})
         with state.lock:
