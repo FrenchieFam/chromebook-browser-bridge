@@ -1,4 +1,30 @@
-# Validation record — v0.2.0
+# Validation record — v0.3.0 candidate
+
+Date: 2026-11-14.
+
+Validation: 22 Python tests and 17 JavaScript tests pass. Worker/popup syntax
+checks and bundled skill validation pass. Installer tested in an isolated home,
+including private config permissions and token preservation.
+
+## Current changes
+
+- Optional persistent pinned work tab; session-only remains the default.
+- Disconnect/banner cancellation pause recovery persistently.
+- Worker actions remain bound to their starting tab/connection intent.
+- Server cancels pending commands when heartbeat tab identity changes.
+- HTTP timeouts and malformed request/authentication handling.
+- Generic start URL, no personal endpoints or generated pairing configs.
+- Isolated installer checks pairing config/token permissions and token retention.
+
+The personal 0.3.0 extension was reloaded and its connected version, status and
+snapshot verified on the original Chromebook. The public variant is generalized
+and tested in isolation; it has not replaced that live installation. Full host
+reboot recovery remains unverified until the coordinated restart test. This is
+not an unattended-operation or exact-session-restoration guarantee.
+
+## Previous v0.2.0 validation
+
+### Original record — v0.2.0
 
 Date: 2026-11-14.
 

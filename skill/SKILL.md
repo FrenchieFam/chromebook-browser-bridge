@@ -8,10 +8,13 @@ description: Operate a Chrome tab explicitly connected through the local Chromeb
 Use its `browser_status` tool first to identify the selected tab and bridge version.
 If MCP tools are unavailable, use `~/.local/bin/chromebook-browser status` and
 `~/.local/bin/chromebook-browser snapshot` through the terminal.
-The bridge has no access to other tabs until the user connects one explicitly.
+The bridge controls the owner-selected tab or an explicitly enabled dedicated
+persistent work tab. Persistent mode never follows the owner's active tab.
 
-When disconnected, ask the user to open the intended page, open the extension,
-and click Connect this tab. Do not silently attach another tab or reattach after
+When disconnected, inspect status first. Enabled persistent mode may be waiting
+for Linux; an explicit Disconnect or banner cancellation persists a pause. For
+session-only access the owner opens the intended page and clicks Connect this tab.
+For recovery they explicitly choose a start page and Start persistent work tab. Do not silently attach another tab or reattach after
 the user cancels Chrome's debugger banner. For diagnostics, use
 `~/.local/bin/chromebook-bridge-check`.
 
@@ -26,7 +29,9 @@ are not implemented. Login passwords are entered by the user in Chrome.
 The service starts with the Linux user session, not automatically at Chromebook
 boot. Source installation is under `~/.local/share/chromebook-browser-bridge`.
 Runtime changes need a user-service restart. Extension changes need Reload in
-`chrome://extensions` and another explicit tab connection.
+`chrome://extensions`; inspect status after reloading and honor any saved pause.
+Persistent mode needs Linux running and may create a replacement start-page tab;
+do not assume it restores the exact previous page or conversation.
 
 The extension's config.js and `~/.config/chromebook-browser-bridge/token` contain
 local pairing credentials. Keep them out of public repositories and shared demos.
