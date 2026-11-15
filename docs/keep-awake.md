@@ -9,7 +9,7 @@ It does not change ChromeOS power preferences, lid behavior or screen locking.
 
 1. Update the bridge runtime and reload the extension in chrome://extensions.
 2. Connect a normal tab or start persistent work mode.
-3. In the extension popup, choose1 minute for a quick expiry check, or15/30/60
+3. In the extension popup, choose 1 minute for a quick expiry check, or 15, 30 or 60
    minutes for work. Click Enable keep-awake. Chrome asks for the optional power
    permission on first use; declining leaves the feature off.
 4. The popup shows remaining time. Restart timer explicitly begins a new duration;
@@ -38,10 +38,29 @@ Automated checks cover permission denial, invalid duration, races, expired/corru
 session state, API failures, service-worker restoration, stop/banner/tab-loss,
 permission revocation and browser startup. The popup was tested in an actual
 360px browser preview with simulated extension APIs; it is not a hardware test.
-Real extension permission, expiry and screen-off idle behavior are PENDING.
-Do not describe them as verified until actual results are recorded.
+On the Lenovo, the owner confirmed the native popup after an intrinsic-width
+fix. A real one-minute session was observed active in authenticated 0.4.0
+heartbeats, then automatically inactive after its original deadline. This verifies
+actual extension activation/expiry, not OS wake telemetry. A controlled battery
+idle-Sleep/screen-off hardware check is still pending.
 
 References:
 - https://developer.chrome.com/docs/extensions/reference/api/power
 - https://developer.chrome.com/docs/extensions/reference/api/permissions
 - https://developer.chrome.com/docs/extensions/reference/api/storage
+
+## Session lifecycle
+
+```mermaid
+stateDiagram-v2
+  [*] --> Off
+  Off --> Active: Owner enables + permission + connected tab
+  Active --> Active: Owner explicitly restarts timer
+  Active --> Off: Stop / Disconnect / banner cancel / tab loss
+  Active --> Off: Expiry / revocation / browser restart
+  Active --> Active: Worker restarts within the same unexpired session
+```
+
+The native popup has an intrinsic minimum width so Chrome can size it before
+its viewport exists. Testing only a fixed-width browser preview missed the first
+native popup sizing issue; the owner confirmed the corrected real menu on Lenovo.
