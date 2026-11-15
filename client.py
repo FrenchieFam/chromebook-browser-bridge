@@ -4,7 +4,7 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 p=argparse.ArgumentParser(description='Operate only the Chrome tab selected in Chromebook Browser Bridge.')
-p.add_argument('action', choices=['focus','status','snapshot','screenshot','navigate','click','type','scroll','key','select','viewport'])
+p.add_argument('action', choices=['wake_start','wake_stop','focus','status','snapshot','screenshot','navigate','click','type','scroll','key','select','viewport'])
 p.add_argument('--args',default='{}',help='JSON action arguments; do not put passwords here')
 p.add_argument('--output',type=Path,help='Save screenshot as PNG instead of printing image data')
 a=p.parse_args()

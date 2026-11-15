@@ -78,3 +78,12 @@ command. Denial does not prevent normal bridge use. Session state is local to th
 browser session, and explicit stops invalidate in-flight starts. Expiry relies
 on Chrome event scheduling, not an independent real-time watchdog. Power-request
 status is observable but does not prove actual OS wake or display visibility.
+
+## v0.5.0 candidate remote wake policy
+
+Remote wake_start/wake_stop are authenticated commands. Starting requires a
+connected work tab, existing Chrome power permission and locally owner-enabled
+remoteWakeAllowed. No HTTP/MCP action changes that allowance. Owner Stop or
+Disconnect revokes it and invalidates pending starts. Ordinary expiry and remote
+stop preserve it. This intentionally expands the0.4.0 popup-only power model
+only after per-device opt-in; it does not grant native host/desktop access.

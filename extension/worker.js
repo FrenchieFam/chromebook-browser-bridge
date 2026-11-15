@@ -50,6 +50,8 @@ async function elementPoint(selector){
 
 async function perform(job){const a=job.args||{};
  if(job.action==='focus')return focusConnected();
+ if(job.action==='wake_start')return {ok:true,wake:await wake.remoteStart(a.minutes)};
+ if(job.action==='wake_stop'){await wake.stop();return {ok:true,wake:await wake.status()};}
  if(job.action==='snapshot')return {ok:true,...await evaluate(`(()=>{function selector(e){if(e.id)return '#'+CSS.escape(e.id);for(const attr of ['data-testid','name','placeholder','aria-label']){const value=e.getAttribute(attr);if(value){const q=e.tagName.toLowerCase()+'['+attr+'='+CSS.escape(value)+']';if(document.querySelectorAll(q).length===1)return q;}}const p=[];for(let n=e;n&&n!==document.documentElement;n=n.parentElement){let i=1;for(let s=n.previousElementSibling;s;s=s.previousElementSibling)if(s.tagName===n.tagName)i++;p.unshift(n.tagName.toLowerCase()+':nth-of-type('+i+')');}return 'html>'+p.join('>');}return {title:document.title,url:location.href,visibility:document.visibilityState,viewport:{width:innerWidth,height:innerHeight,documentWidth:document.documentElement.scrollWidth},text:(document.body?.innerText||'').slice(0,18000),controls:Array.from(document.querySelectorAll('a,button,input,textarea,select,[role="button"],[contenteditable="true"]')).filter(e=>e.getClientRects().length).slice(0,100).map(e=>({tag:e.tagName,type:e.type||'',text:(e.innerText||e.getAttribute('aria-label')||e.placeholder||'').slice(0,140),selector:selector(e),disabled:!!e.disabled,checked:['checkbox','radio'].includes(e.type)?e.checked:undefined,value:e.tagName==='SELECT'?e.value:undefined,options:e.tagName==='SELECT'?Array.from(e.options).slice(0,100).map(o=>({value:o.value,text:o.text})):undefined}))};})()`)};
  if(job.action==='screenshot'){const r=await cdp('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});return {ok:true,data:r.data};}
  if(job.action==='navigate'){const u=new URL(a.url);if(!['http:','https:','file:'].includes(u.protocol))throw Error('Only http, https, and file navigation is supported');const r=await cdp('Page.navigate',{url:u.href});if(r.errorText)throw Error(r.errorText);return {ok:true,navigatedTo:u.href,note:'Navigation started; inspect snapshot to confirm the result.'};}
@@ -79,7 +81,7 @@ async function perform(job){const a=job.args||{};
 
  throw Error('Unknown action');
 }
-const VERSION='0.4.0',RECOVERY_ALARM='bry-work-tab-recovery';
+const VERSION='0.5.0',RECOVERY_ALARM='bry-work-tab-recovery';
 let intent=0,recovering=false;
 const wake=createWakeController(chrome,{connected:()=>tabId!==null});
 const normalURL=value=>{const url=new URL(value);if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.search||url.hash)throw Error('Use an http/https start page without credentials, query strings or fragments');return url.href;};
@@ -89,7 +91,7 @@ async function poll(){if(tabId===null||busy)return;const originTab=tabId,originI
 async function detachCurrent(){await wake.stop().catch(e=>{lastError=e.message;});clearTimeout(timer);const old=tabId;tabId=null;await chrome.storage.session.remove('tabId');if(old!==null){try{await chrome.debugger.detach({tabId:old});}catch{}}await chrome.action.setBadgeText({text:''});try{await heartbeat();}catch{}}
 async function stop(reason='Disconnected by owner'){
  intent++;detachReason=reason;
- await wake.stop().catch(e=>{lastError=e.message;});
+ await wake.stop(true).catch(e=>{lastError=e.message;});
  // Persist the stop before awaiting network/Chrome cleanup. Alarms must never undo it.
  await chrome.storage.local.set({persistentEnabled:false});
  await chrome.alarms.clear(RECOVERY_ALARM);
@@ -144,13 +146,15 @@ chrome.debugger.onDetach.addListener((source,reason)=>{
  else{detachReason=reason||'Chrome detached';detachCurrent().catch(e=>{lastError=e.message;});}
 });
 chrome.alarms.onAlarm.addListener(alarm=>{if(alarm.name===RECOVERY_ALARM)recoverPersistent();wake.alarm(alarm).catch(e=>{lastError=e.message;});});
-chrome.permissions.onRemoved.addListener(removed=>{if((removed.permissions||[]).includes('power'))wake.stop().catch(e=>{lastError=e.message;});});
+chrome.permissions.onRemoved.addListener(removed=>{if((removed.permissions||[]).includes('power'))wake.stop(true).catch(e=>{lastError=e.message;});});
 chrome.runtime.onInstalled.addListener(()=>{wake.stop().catch(e=>{lastError=e.message;});});
 chrome.runtime.onStartup.addListener(()=>{wake.stop().then(initialize).catch(e=>{lastError=e.message;});});
 chrome.runtime.onMessage.addListener((msg,sender,respond)=>{(async()=>{
- if(msg.action==='wake-start'||msg.action==='wake-stop'){
+ if(['wake-start','wake-stop','wake-remote-policy'].includes(msg.action)){
   if(sender.url!==chrome.runtime.getURL('popup.html'))throw Error('Keep-awake can only be changed from the extension popup');
-  if(msg.action==='wake-start')await wake.start(msg.minutes);else await wake.stop();
+  if(msg.action==='wake-start')await wake.start(msg.minutes);
+  else if(msg.action==='wake-remote-policy')await wake.setRemoteAllowed(msg.allowed);
+  else await wake.stop(true);
  }else if(msg.action==='connect'){
   // Choosing an ordinary tab returns to session-only mode.
   await stop('Selected-tab mode');const ticket=intent;

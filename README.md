@@ -224,3 +224,10 @@ and [the specific validation record](docs/validation.md).
 ## License
 
 [MIT](LICENSE). Built by [FrenchieFam](https://github.com/FrenchieFam).
+
+## Remote timed sessions (0.5.0 candidate)
+
+A paired client can start/renew/stop bounded timers after the owner enables the
+per-device remote allowance. Local Stop/Disconnect pauses it. See
+[the contract and pending validation](docs/remote-wake.md). This does not add
+native ChromeOS Settings control or wake a sleeping computer.
