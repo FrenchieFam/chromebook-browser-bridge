@@ -1,5 +1,5 @@
 'use strict';
-importScripts('config.js');
+importScripts('config.js','power.js');
 let tabId=null,timer=null,busy=false,lastError='',detachReason='',jobTarget=null;
 const req=async(path,data)=>{const r=await fetch(BRIDGE_URL+path,{method:data===undefined?'GET':'POST',headers:{Authorization:'Bearer '+BRIDGE_TOKEN,'Content-Type':'application/json'},body:data===undefined?undefined:JSON.stringify(data),signal:AbortSignal.timeout(6000)});if(!r.ok)throw Error('Bridge HTTP '+r.status);return r.json();};
 const cdp=(method,params={})=>{if(jobTarget&&(jobTarget.tabId!==tabId||jobTarget.intent!==intent))throw Error('Connection changed; obtain a fresh snapshot');if(tabId===null)throw Error('No selected tab');return chrome.debugger.sendCommand({tabId},method,params);};
@@ -79,15 +79,17 @@ async function perform(job){const a=job.args||{};
 
  throw Error('Unknown action');
 }
-const VERSION='0.3.1',RECOVERY_ALARM='bry-work-tab-recovery';
+const VERSION='0.4.0',RECOVERY_ALARM='bry-work-tab-recovery';
 let intent=0,recovering=false;
+const wake=createWakeController(chrome,{connected:()=>tabId!==null});
 const normalURL=value=>{const url=new URL(value);if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.search||url.hash)throw Error('Use an http/https start page without credentials, query strings or fragments');return url.href;};
 async function persistentSettings(){return chrome.storage.local.get(['persistentEnabled','workTabId','startURL']);}
-async function heartbeat(){const tab=tabId===null?null:await chrome.tabs.get(tabId);await req('/heartbeat',{tabId,title:tab?.title||'Disconnected',url:tab?.url||'',extensionVersion:VERSION,lastError,detachReason});}
+async function heartbeat(){const tab=tabId===null?null:await chrome.tabs.get(tabId);await req('/heartbeat',{tabId,title:tab?.title||'Disconnected',url:tab?.url||'',extensionVersion:VERSION,lastError,detachReason,wake:await wake.status()});}
 async function poll(){if(tabId===null||busy)return;const originTab=tabId,originIntent=intent;busy=true;try{await heartbeat();const {job}=await req('/poll');if(job){let result;try{if(originTab!==tabId||originIntent!==intent)throw Error('Connection changed; obtain a fresh snapshot');jobTarget={tabId:originTab,intent:originIntent};if(job.expires*1000<Date.now())throw Error('Expired command');result=await perform(job);}catch(e){result={ok:false,error:e.message};}finally{jobTarget=null;}await req('/result',{id:job.id,result});}lastError='';}catch(e){lastError=e.message;}finally{busy=false;if(tabId!==null)timer=setTimeout(poll,lastError?4000:700);}}
-async function detachCurrent(){clearTimeout(timer);const old=tabId;tabId=null;await chrome.storage.session.remove('tabId');if(old!==null){try{await chrome.debugger.detach({tabId:old});}catch{}}await chrome.action.setBadgeText({text:''});try{await heartbeat();}catch{}}
+async function detachCurrent(){await wake.stop().catch(e=>{lastError=e.message;});clearTimeout(timer);const old=tabId;tabId=null;await chrome.storage.session.remove('tabId');if(old!==null){try{await chrome.debugger.detach({tabId:old});}catch{}}await chrome.action.setBadgeText({text:''});try{await heartbeat();}catch{}}
 async function stop(reason='Disconnected by owner'){
  intent++;detachReason=reason;
+ await wake.stop().catch(e=>{lastError=e.message;});
  // Persist the stop before awaiting network/Chrome cleanup. Alarms must never undo it.
  await chrome.storage.local.set({persistentEnabled:false});
  await chrome.alarms.clear(RECOVERY_ALARM);
@@ -141,17 +143,22 @@ chrome.debugger.onDetach.addListener((source,reason)=>{
  if(reason==='canceled_by_user'){stop('Stopped by Chrome debugging banner').catch(e=>{lastError=e.message;});}
  else{detachReason=reason||'Chrome detached';detachCurrent().catch(e=>{lastError=e.message;});}
 });
-chrome.alarms.onAlarm.addListener(alarm=>{if(alarm.name===RECOVERY_ALARM)recoverPersistent();});
-chrome.runtime.onStartup.addListener(()=>{initialize().catch(e=>{lastError=e.message;});});
+chrome.alarms.onAlarm.addListener(alarm=>{if(alarm.name===RECOVERY_ALARM)recoverPersistent();wake.alarm(alarm).catch(e=>{lastError=e.message;});});
+chrome.permissions.onRemoved.addListener(removed=>{if((removed.permissions||[]).includes('power'))wake.stop().catch(e=>{lastError=e.message;});});
+chrome.runtime.onInstalled.addListener(()=>{wake.stop().catch(e=>{lastError=e.message;});});
+chrome.runtime.onStartup.addListener(()=>{wake.stop().then(initialize).catch(e=>{lastError=e.message;});});
 chrome.runtime.onMessage.addListener((msg,sender,respond)=>{(async()=>{
- if(msg.action==='connect'){
+ if(msg.action==='wake-start'||msg.action==='wake-stop'){
+  if(sender.url!==chrome.runtime.getURL('popup.html'))throw Error('Keep-awake can only be changed from the extension popup');
+  if(msg.action==='wake-start')await wake.start(msg.minutes);else await wake.stop();
+ }else if(msg.action==='connect'){
   // Choosing an ordinary tab returns to session-only mode.
   await stop('Selected-tab mode');const ticket=intent;
   await attachTab(msg.tabId,ticket);
  }else if(msg.action==='disconnect'){await stop();}
  else if(msg.action==='persistent'){await enablePersistent(msg.startURL||'https://example.com/');}
  const prefs=await persistentSettings();
- return {ok:true,tabId,lastError,detachReason,endpoint:BRIDGE_URL,version:VERSION,persistentEnabled:!!prefs.persistentEnabled,startURL:prefs.startURL||'https://example.com/'};
+ return {ok:true,tabId,lastError,detachReason,endpoint:BRIDGE_URL,version:VERSION,persistentEnabled:!!prefs.persistentEnabled,startURL:prefs.startURL||'https://example.com/',wake:await wake.status()};
 })().then(respond,e=>respond({ok:false,error:e.message}));return true;});
 async function initialize(){
  const ticket=intent,prefs=await persistentSettings();
@@ -167,5 +174,6 @@ async function initialize(){
   await chrome.alarms.create(RECOVERY_ALARM,{periodInMinutes:1});
   await recoverPersistent();
  }
+ await wake.restore();
 }
 initialize().catch(e=>{lastError=e.message;});

@@ -69,3 +69,12 @@ Report reproducible non-sensitive issues through the repository's Issues page.
 Do not include tokens, cookies, credentials, screenshots of private accounts, or
 paired extension archives. For a potential credential exposure, rotate the local
 pairing first and share a minimal redacted reproduction.
+
+## Optional power permission
+
+The0.4.0 candidate declares power as optional, not required. Only a message from
+the extension popup can start a bounded wake session; there is no remote enable
+command. Denial does not prevent normal bridge use. Session state is local to the
+browser session, and explicit stops invalidate in-flight starts. Expiry relies
+on Chrome event scheduling, not an independent real-time watchdog. Power-request
+status is observable but does not prove actual OS wake or display visibility.

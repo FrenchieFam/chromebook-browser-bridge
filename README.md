@@ -214,3 +214,11 @@ and [the specific validation record](docs/validation.md).
 ## License
 
 [MIT](LICENSE). Built by [FrenchieFam](https://github.com/FrenchieFam).
+
+## Optional timed keep-awake (0.4.0 candidate)
+
+The popup offers an explicit1/15/30/60-minute system wake session with countdown
+and Stop. Power is an optional permission requested only on Enable. Disconnect
+and tab loss release it; it does not change ChromeOS power/lock preferences or
+promise closed-lid availability. See [behavior and validation](docs/keep-awake.md).
+Hardware validation is pending; the current release remains0.3.1 until verified.
