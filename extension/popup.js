@@ -54,6 +54,7 @@ el('wake-stop').onclick=async()=>{
 el('wake-remote').onchange=async()=>{
  if(changing)return;changing=true;
  const allowed=el('wake-remote').checked;
+ el('wake-remote').disabled=true;
  try{
   if(allowed&&!await chrome.permissions.request({permissions:['power']}))throw Error('Power permission declined; remote sessions stay paused.');
   await send({action:'wake-remote-policy',allowed});
