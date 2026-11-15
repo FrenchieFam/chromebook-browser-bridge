@@ -50,13 +50,14 @@ persistent start page. A minimized/hidden window can still need owner attention.
 Click/type/key never implicitly invoke focus. Inspect actual results afterward;
 visibility and CDP delivery do not prove a site's business operation completed.
 
-## Optional timed keep-awake (0.4.0 candidate)
+## Optional timed keep-awake (v0.4.0)
 
-The popup offers an explicit 1, 15, 30 or 60 minute system wake session with countdown
+The popup offers a timed system-wake session of 1, 15, 30 or 60 minutes with countdown
 and Stop. Power is an optional permission requested only on Enable. Disconnect
 and tab loss release it; it does not change ChromeOS power/lock preferences or
 promise closed-lid availability. See [behavior and validation](docs/keep-awake.md).
-Hardware validation is pending; the current release remains0.3.1 until verified.
+A real one-minute expiry and15-minute battery screen-off session passed on Lenovo;
+see the exact [validation record](docs/validation.md) and remaining limits.
 
 ## Requirements
 

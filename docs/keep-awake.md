@@ -1,4 +1,4 @@
-# Optional timed keep-awake — v0.4.0 candidate
+# Optional timed keep-awake — v0.4.0
 
 This feature is off by default. It uses Chrome's `power` API at the `system`
 level: prevent idle system sleep while allowing the display to dim/turn off.
@@ -41,8 +41,11 @@ permission revocation and browser startup. The popup was tested in an actual
 On the Lenovo, the owner confirmed the native popup after an intrinsic-width
 fix. A real one-minute session was observed active in authenticated 0.4.0
 heartbeats, then automatically inactive after its original deadline. This verifies
-actual extension activation/expiry, not OS wake telemetry. A controlled battery
-idle-Sleep/screen-off hardware check is still pending.
+actual extension activation/expiry, not OS wake telemetry. A configured15-minute battery idle-Sleep check also passed: the owner confirmed
+the display was off, while SSH/browser heartbeats stayed available through the
+active session and an inactive lease was observed after the deadline. Battery
+reported82% at the first active observation and80% at expiry. This is a sampled
+one-device result, not a battery benchmark or closed-lid guarantee.
 
 References:
 - https://developer.chrome.com/docs/extensions/reference/api/power
