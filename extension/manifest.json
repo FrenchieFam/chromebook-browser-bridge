@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Chromebook Browser Bridge",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "minimum_chrome_version": "118",
   "description": "Local control of a chosen tab or an optional persistent pinned work tab. Disconnect or cancel the banner to pause.",
   "permissions": [

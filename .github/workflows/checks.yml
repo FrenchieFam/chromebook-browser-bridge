@@ -1,0 +1,12 @@
+name: Browser bridge checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: python3 -m unittest discover -p 'test_*.py' -v
+      - run: node --test test_worker.cjs test_persistence.cjs test_input_visibility.cjs
+      - run: node --check extension/worker.js && node --check extension/popup.js

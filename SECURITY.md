@@ -19,6 +19,15 @@ network service.
 - Password input typing is refused. Screenshots/page text can still contain sensitive information.
 - No arbitrary shell or general JavaScript execution tool in the MCP interface.
 
+## Explicit focus and visibility
+
+`browser_focus` can change foreground UI for the existing connected tab. It has
+no caller-supplied tab ID and uses the same original-connection guard as every
+other CDP action. It cannot reattach, undo Disconnect/banner cancellation, follow
+the active tab, or expand access. Hidden click/type/key actions fail before input;
+visibility changes during clicks are reported as ambiguous, without retry. Site
+handlers may still prevent or alter an action; inspect state before repeating it.
+
 ## Persistent mode
 
 Persistence is off by default and requires an explicit popup action. A dedicated

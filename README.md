@@ -15,7 +15,8 @@ ChromeOS desktop-control system or an official OpenAI/Google integration.
 | Tool | Result |
 | --- | --- |
 | `browser_status` | Connection state and the selected tab |
-| `browser_snapshot` | Text, visible control selectors, checkboxes, select options, viewport |
+| `browser_focus` | Explicitly activate the already-connected tab; no reconnect or target change |
+| `browser_snapshot` | Visibility, text, visible control selectors, checkboxes, select options, viewport |
 | `browser_screenshot` | PNG of the selected tab |
 | `browser_navigate` | Navigate the selected tab |
 | `browser_click` | Scroll instantly, wait for a stable target, check for covering elements, click |
@@ -30,6 +31,23 @@ persistent mode creates a designated pinned work tab and recovers it when Chrome
 or Linux becomes available again. Chrome shows a debugging banner in both modes.
 Disconnect or canceling the banner pauses automatic recovery until explicitly
 re-enabled. Persistent mode never follows whichever tab you happen to use.
+
+## Visible input and explicit focus (v0.3.1)
+
+A connected background tab can be read without activating it. Coordinate/keyboard
+input requires a visible tab: hidden click/type/key actions return an error before
+input, rather than reporting success when Chrome silently ignores a click.
+Snapshots expose `visibility`. Target visibility is checked while measuring and
+again before dispatch; if it changes during a click, the result is ambiguous and
+you must inspect before retrying. There is no automatic action retry.
+
+When a foreground action is appropriate, explicitly call `browser_focus` (CLI:
+`chromebook-browser focus`). It activates only the existing connected debugger
+target and waits for it to become visible. This may bring its Chrome window
+forward. It never attaches another tab, resumes an owner pause, or changes the
+persistent start page. A minimized/hidden window can still need owner attention.
+Click/type/key never implicitly invoke focus. Inspect actual results afterward;
+visibility and CDP delivery do not prove a site's business operation completed.
 
 ## Requirements
 
@@ -180,7 +198,7 @@ website content trustworthy or remove account authorization requirements.
 
 ```sh
 python3 -m unittest discover -p 'test_*.py' -v
-node --test test_worker.cjs test_persistence.cjs
+node --test test_worker.cjs test_persistence.cjs test_input_visibility.cjs
 ```
 
 The source tests cover HTTP authentication/origins, command/result delivery,

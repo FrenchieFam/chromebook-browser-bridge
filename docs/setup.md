@@ -49,6 +49,16 @@ If you edit the extension source, rerun the installer before reloading Chrome's
 installed copy. If you edit the installed copy directly, those edits may be
 replaced by the next installer run. Use a source checkout for maintained changes.
 
+## Background work tabs and coordinate input
+
+With extension0.3.1, inspect `visibility` in the snapshot. If hidden, explicitly
+use `chromebook-browser focus` / `browser_focus` when showing the authorized tab
+is appropriate, or have its owner select it. Then obtain a fresh snapshot before
+click/type/key. These input actions do not silently activate tabs. Focus does not
+resume a stopped connection; the owner must explicitly reconnect/resume first.
+If the window remains hidden, bring it into view manually. Never blindly retry
+an action reported ambiguous after a visibility change.
+
 ## MCP
 
 Registration is equivalent to:

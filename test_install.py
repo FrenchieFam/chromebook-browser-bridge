@@ -14,7 +14,7 @@ class InstallerTests(unittest.TestCase):
    self.assertEqual(stat.S_IMODE(first['token_file'].stat().st_mode),0o600)
    self.assertEqual(stat.S_IMODE((ext/'config.js').stat().st_mode),0o600)
    self.assertIn('alarms',json.loads((ext/'manifest.json').read_text())['permissions'])
-   self.assertEqual(json.loads((ext/'manifest.json').read_text())['version'],'0.3.0')
+   self.assertEqual(json.loads((ext/'manifest.json').read_text())['version'],'0.3.1')
    self.assertTrue((first['app']/'mcp_server.py').is_file())
    self.assertTrue((home/'.codex/skills/chromebook-browser-bridge/SKILL.md').is_file())
    self.assertIn('bridge install ',(home/'.config/systemd/user/chromebook-browser-bridge.service').read_text())
