@@ -20,6 +20,15 @@ class BridgeTests(unittest.TestCase):
         try:
             with self.opener.open(request,timeout=3) as r:return r.status,json.load(r)
         except HTTPError as e:return e.code,json.load(e)
+    def test_wake_is_observable_but_cannot_be_enabled_over_http(self):
+        wake={'active':True,'expiresAt':123456,'remainingSeconds':60,'level':'system'}
+        self.call('/heartbeat',{'tabId':7,'wake':wake})
+        self.assertEqual(self.call('/status')[1]['tab']['wake'],wake)
+        for action in ('wake-start','wake-stop'):
+            self.assertEqual(self.call('/command',{'action':action,'args':{'minutes':60}})[0],400)
+    def test_legacy_heartbeat_does_not_invent_a_wake_session(self):
+        self.call('/heartbeat',{'tabId':7,'extensionVersion':'0.3.1'})
+        self.assertIsNone(self.call('/status')[1]['tab']['wake'])
     def test_missing_connection(self):
         self.assertFalse(self.call('/status')[1]['connected'])
         self.assertEqual(self.call('/command',{'action':'snapshot'})[0],409)

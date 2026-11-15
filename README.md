@@ -6,9 +6,10 @@ A small, dependency-free bridge between a Linux terminal and a Chrome tab you
 choose. Use it to inspect pages, take screenshots, test forms, and check responsive
 layouts. An optional stdio MCP adapter exposes the same actions as agent tools.
 
-Built and tested on a Samsung Chromebook 4 with an Intel Celeron N4020 and 4 GB
-RAM. This is an early personal project, tested on one device—not a general
-ChromeOS desktop-control system or an official OpenAI/Google integration.
+Built and tested on two 4 GB Chromebooks: a Samsung Chromebook 4 (Celeron N4020)
+and a Lenovo (AMD A6-9220C), with Debian Linux environments. This remains an
+early personal project, not a general desktop-control system or an official
+OpenAI/Google integration. See the [case study](https://frenchiefam.dev/chromebook-workbench/).
 
 ## What works
 
@@ -48,6 +49,15 @@ forward. It never attaches another tab, resumes an owner pause, or changes the
 persistent start page. A minimized/hidden window can still need owner attention.
 Click/type/key never implicitly invoke focus. Inspect actual results afterward;
 visibility and CDP delivery do not prove a site's business operation completed.
+
+## Optional timed keep-awake (v0.4.0)
+
+The popup offers a timed system-wake session of 1, 15, 30 or 60 minutes with countdown
+and Stop. Power is an optional permission requested only on Enable. Disconnect
+and tab loss release it; it does not change ChromeOS power/lock preferences or
+promise closed-lid availability. See [behavior and validation](docs/keep-awake.md).
+A real one-minute expiry and15-minute battery screen-off session passed on Lenovo;
+see the exact [validation record](docs/validation.md) and remaining limits.
 
 ## Requirements
 
@@ -198,7 +208,7 @@ website content trustworthy or remove account authorization requirements.
 
 ```sh
 python3 -m unittest discover -p 'test_*.py' -v
-node --test test_worker.cjs test_persistence.cjs test_input_visibility.cjs
+node --test test_worker.cjs test_persistence.cjs test_input_visibility.cjs test_power.cjs test_popup.cjs
 ```
 
 The source tests cover HTTP authentication/origins, command/result delivery,

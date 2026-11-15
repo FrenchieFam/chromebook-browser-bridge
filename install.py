@@ -4,7 +4,7 @@ import argparse, ipaddress, json, os, secrets, shlex, shutil, subprocess, sys
 from pathlib import Path
 
 RUNTIME=['server.py','client.py','mcp_server.py','doctor.py']
-EXTENSION=['manifest.json','worker.js','popup.js','popup.html']
+EXTENSION=['manifest.json','worker.js','power.js','popup.js','popup.html','popup.css']
 def unit_quote(value):return '"'+str(value).replace('\\','\\\\').replace('"','\\"').replace('%','%%').replace('$','$$')+'"'
 def install(args):
  source=Path(__file__).resolve().parent

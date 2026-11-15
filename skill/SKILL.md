@@ -44,3 +44,13 @@ The extension's config.js and `~/.config/chromebook-browser-bridge/token` contai
 local pairing credentials. Keep them out of public repositories and shared demos.
 After a VM IP change, rerun the installer with the same extension destination,
 then reload the extension; the installer preserves an existing pairing token.
+
+## Owner-enabled keep-awake
+
+Version 0.4.0 adds an optional timed system-wake session in the extension popup.
+The owner enables it and grants optional power permission there; the Linux/MCP
+interface cannot enable or extend it. Status can report the active lease/deadline.
+Do not equate that field with measured OS wake, screen visibility or closed-lid
+availability. Honor Stop/Disconnect. Keep normal screenshot/visibility checks for
+browser input even when a wake session is active. Chrome power/lock settings are
+separate. Never use input loops to manufacture activity or bypass a stop.

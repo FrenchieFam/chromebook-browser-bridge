@@ -79,7 +79,7 @@ class Handler(BaseHTTPRequestHandler):
                         pending['event'].set()
                     state.pending.clear()
                 state.seen = time.time()
-                state.peer = {k: body.get(k) for k in ('tabId', 'title', 'url', 'extensionVersion', 'lastError', 'detachReason')}
+                state.peer = {k: body.get(k) for k in ('tabId', 'title', 'url', 'extensionVersion', 'lastError', 'detachReason', 'wake')}
             return self.reply(200, {'ok': True})
         if self.path == '/result':
             if not isinstance(body.get('id'), str):

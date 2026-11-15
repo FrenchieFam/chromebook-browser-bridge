@@ -1,4 +1,36 @@
-# Validation record — v0.3.1
+# Validation record — v0.4.0
+
+November15,2026.27 Python and44 JavaScript tests pass locally and in GitHub CI.
+The same complete71-check suite passed as a detached job on the Lenovo at57ca97e.
+Tests include permission denial, bounded durations, expiry/status/alarms, storage
+and alarm failures, start/stop races, remaining-deadline session restoration,
+corrupt/expired state, popup-origin enforcement, Disconnect/banner/tab-loss,
+revocation/startup release and refusal of HTTP power-enable commands.
+
+Actual native Chrome0.4.0 on Lenovo reported an owner-enabled1-minute system wake
+session active, then inactive after its original deadline. The owner then set
+native battery idle behavior to Sleep, kept lid sleep enabled and the lid open,
+started15 minutes and left Lenovo untouched. The owner confirmed its display was
+off while authenticated SSH/browser observations remained healthy. The request
+remained active through its final seconds, then a fresh inactive lease was
+observed after the deadline. Battery reported82% at the first active observation
+and80% at expiry. No input was generated on Lenovo during the test.
+
+This is sampled availability plus owner visual confirmation, not independent OS
+power telemetry, a controlled battery-runtime estimate or uninterrupted-service
+proof. No closed-lid override, managed-policy override, critical-battery behavior
+or repeated-cycle reliability is claimed. Restart/permission-failure paths are
+unit/integration checks, not all physical restart tests.
+
+A fixed-width web preview missed the first native popup's intrinsic-size collapse.
+An explicit HTML/body minimum width fixed it; the owner confirmed the full Lenovo
+menu. Samsung's native popup was then visually inspected, and wake/stop/disconnect
+controls moved into the first view with collapsible persistent settings. Both
+actual extensions now report0.4.0; Samsung's wake feature stays off. Personal
+pairing files and DeepSeek start page were preserved. Generic installer isolation
+and optional-permission/new-file packaging tests pass.
+
+## Previous validation — v0.3.1
 
 November14,2026 (Pacific). A second physical Chromebook (Lenovo, AMD A6-9220C,
 4GB RAM, Debian13/x86_64) reproduced a background-tab input bug: click returned

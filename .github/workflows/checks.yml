@@ -8,5 +8,5 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: python3 -m unittest discover -p 'test_*.py' -v
-      - run: node --test test_worker.cjs test_persistence.cjs test_input_visibility.cjs
-      - run: node --check extension/worker.js && node --check extension/popup.js
+      - run: node --test test_worker.cjs test_persistence.cjs test_input_visibility.cjs test_power.cjs test_popup.cjs
+      - run: node --check extension/worker.js && node --check extension/popup.js && node --check extension/power.js
