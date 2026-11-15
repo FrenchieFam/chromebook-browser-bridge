@@ -1,4 +1,23 @@
-# Validation record — v0.3.0
+# Validation record — v0.3.1 candidate
+
+November14,2026 (Pacific). A second physical Chromebook (Lenovo, AMD A6-9220C,
+4GB RAM, Debian13/x86_64) reproduced a background-tab input bug: click returned
+OK without toggling a checkbox. Selecting the work tab made coordinate input work.
+The portable0.3.0 install and22Python+17JS tests passed there, plus actual visible
+navigation, text/checkbox/select/button, screenshot and390x844 viewport checks.
+
+The0.3.1 change adds explicit connected-tab focus and fails hidden click/type/key
+before input. It exposes snapshot visibility and reports visibility loss during
+a click as ambiguous. Regression tests cover hidden no-input behavior, explicit
+same-target focus, no implicit focus, hidden-window failure, mid-focus connection
+change/no replacement targeting, absent connection, and visibility loss during
+measurement/press. Python tests cover tool schema/no arbitrary tab ID and an
+actual HTTP focus-command roundtrip. Live patched-extension validation is pending
+and must be recorded before a release is called verified.
+
+## Previous validation
+
+### v0.3.0
 
 Date: 2026-11-14.
 

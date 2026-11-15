@@ -18,6 +18,13 @@ For recovery they explicitly choose a start page and Start persistent work tab. 
 the user cancels Chrome's debugger banner. For diagnostics, use
 `~/.local/bin/chromebook-bridge-check`.
 
+For extension0.3.1+, a snapshot includes visibility. Hidden click/type/key input
+is refused. When showing the connected tab is appropriate for the owner's task,
+use `browser_focus` (CLI `chromebook-browser focus`), then inspect a fresh snapshot.
+Focus changes only the existing connected target; it never reconnects or resumes
+a paused owner connection. Do not use it to undo a stop or take over a different
+tab. If visibility changes during input, inspect the outcome before retrying.
+
 A snapshot returns page text, viewport dimensions, and CSS selectors. Obtain new
 selectors after navigation or DOM changes. Check state after mutations. A timeout
 can occur after a click took effect; inspect before retrying a submission.

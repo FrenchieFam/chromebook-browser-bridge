@@ -48,6 +48,14 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(self.call('/command',{'action':'click','args':{'selector':'button'}})[0],409)
     def test_orphan_result_not_accepted(self):
         self.assertFalse(self.call('/result',{'id':'missing','result':{'ok':True}})[1]['accepted'])
+    def test_focus_command_roundtrip(self):
+        self.call('/heartbeat',{'tabId':7})
+        output=[]
+        thread=threading.Thread(target=lambda:output.append(self.call('/command',{'action':'focus','args':{}})))
+        thread.start();job=self.state.jobs.get(timeout=2)
+        self.assertEqual(job['action'],'focus')
+        self.call('/result',{'id':job['id'],'result':{'ok':True,'focused':True,'visibility':'visible'}})
+        thread.join(3);self.assertTrue(output[0][1]['focused'])
     def test_malformed_inputs_rejected_without_crashing(self):
         for path,body in [('/result',{'id':[]}),('/command',{'action':[]}),('/heartbeat',{'tabId':[]})]:
             self.assertEqual(self.call(path,body)[0],400)
