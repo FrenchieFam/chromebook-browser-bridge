@@ -1,4 +1,4 @@
-# Validation record — v0.3.1 candidate
+# Validation record — v0.3.1
 
 November14,2026 (Pacific). A second physical Chromebook (Lenovo, AMD A6-9220C,
 4GB RAM, Debian13/x86_64) reproduced a background-tab input bug: click returned
@@ -12,8 +12,15 @@ a click as ambiguous. Regression tests cover hidden no-input behavior, explicit
 same-target focus, no implicit focus, hidden-window failure, mid-focus connection
 change/no replacement targeting, absent connection, and visibility loss during
 measurement/press. Python tests cover tool schema/no arbitrary tab ID and an
-actual HTTP focus-command roundtrip. Live patched-extension validation is pending
-and must be recorded before a release is called verified.
+actual HTTP focus-command roundtrip. All25 Python and26 JavaScript tests pass,
+as does GitHub CI.
+
+On November15,2026 the owner reloaded0.3.1 on the Lenovo. The actual hidden
+work tab refused click, typing and Enter input; the form remained unchanged.
+Explicit focus made the same connected tab visible. Checkbox, select, button and
+apostrophe-containing text entry passed, along with390x844/no overflow. Viewport
+and original start page were restored. Minimized-window behavior remains covered
+only by failure-path unit tests, not a physical live check.
 
 ## Previous validation
 
