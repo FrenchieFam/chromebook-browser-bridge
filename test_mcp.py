@@ -9,7 +9,7 @@ class MCPTests(unittest.TestCase):
  def test_unknown_protocol_negotiates_supported(self):self.assertEqual(self.request('initialize',{'protocolVersion':'future'})['result']['protocolVersion'],'2025-06-18')
  def test_notifications_have_no_reply(self):self.assertIsNone(m.dispatch({'jsonrpc':'2.0','method':'notifications/initialized'}))
  def test_list_tools(self):
-  ts=self.request('tools/list')['result']['tools'];self.assertEqual(len(ts),11);self.assertEqual(len({t['name'] for t in ts}),11)
+  ts=self.request('tools/list')['result']['tools'];self.assertEqual(len(ts),13);self.assertEqual(len({t['name'] for t in ts}),13)
  def test_invalid_args_rejected_before_network(self):
   with patch.object(m,'bridge') as b:
    r=self.request('tools/call',{'name':'browser_type','arguments':{'selector':'textarea'}})
@@ -37,5 +37,15 @@ class FocusTests(unittest.TestCase):
    result=m.tool_result('browser_focus',{})
    self.assertFalse(result['isError']);bridge.assert_called_once_with('browser_focus',{})
    self.assertFalse(m.REGISTRY['browser_focus']['annotations']['readOnlyHint'])
+
+class RemoteWakeTests(unittest.TestCase):
+ def test_remote_wake_schema_rejects_unbounded_or_policy_arguments(self):
+  for args in ({'minutes':0},{'minutes':2},{'minutes':61},{'minutes':True},{'minutes':15,'allowed':True}):
+   with self.assertRaises(ValueError):m.validate('browser_wake_start',args)
+  for minutes in (1,15,30,60):m.validate('browser_wake_start',{'minutes':minutes})
+ def test_remote_wake_tools_do_not_expose_policy_or_permission_grant(self):
+  self.assertIn('browser_wake_start',m.REGISTRY);self.assertIn('browser_wake_stop',m.REGISTRY)
+  self.assertFalse(m.REGISTRY['browser_wake_start']['annotations']['idempotentHint'])
+  self.assertNotIn('browser_wake_remote_policy',m.REGISTRY)
 
 if __name__=='__main__':unittest.main()

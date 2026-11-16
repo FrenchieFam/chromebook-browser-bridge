@@ -4,7 +4,7 @@ import argparse, hmac, json, queue, secrets, threading, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-ACTIONS = {'focus', 'snapshot', 'screenshot', 'navigate', 'click', 'type', 'scroll', 'key', 'select', 'viewport'}
+ACTIONS = {'wake_start', 'wake_stop', 'focus', 'snapshot', 'screenshot', 'navigate', 'click', 'type', 'scroll', 'key', 'select', 'viewport'}
 class State:
     def __init__(self, token):
         self.token = token

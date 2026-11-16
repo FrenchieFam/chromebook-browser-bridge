@@ -1,4 +1,23 @@
-# Validation record — v0.4.0
+# Validation record — v0.5.0
+
+November 15, 2026 (Pacific). The generic source passes 29 Python and 53 JavaScript
+tests locally and in GitHub CI. The feature source also passed the complete suite
+on Lenovo. Its actual 0.5.0 extension passed locally enabled remote one-minute
+start, remote stop with allowance retained, and 30/60-minute bounded requests.
+
+Samsung's separate personal bridge was ported without the generic installer.
+Existing token/config files, host permissions, personal identity and start page
+were retained; its source passed 27 Python and 53 JavaScript tests. The actual
+loaded 0.5.0 extension reconnected to the same work tab. Native popup opt-in,
+remote start/stop/restart, native Stop revocation, refused subsequent remote start,
+explicit native rearming and a bounded 60-minute request all passed. The Stop
+check was performed through the native UI, in addition to race/revocation tests.
+
+These checks do not establish a new 0.5.0 long-duration battery study, full boot
+recovery, closed-lid availability or native ChromeOS control by this bridge.
+See [remote wake behavior](remote-wake.md) for the exact authority boundaries.
+
+## Previous validation — v0.4.0
 
 November15,2026.27 Python and44 JavaScript tests pass locally and in GitHub CI.
 The same complete71-check suite passed as a detached job on the Lenovo at57ca97e.
@@ -138,3 +157,9 @@ not installed over the original working personal service during packaging.
 
 There is no claim of reliable unattended 24/7 operation, full desktop control,
 production messaging, or exactly-once browser mutations.
+
+A local-policy storage-write failure now keeps remote authority revoked for the
+current worker runtime; stale saved permission cannot undo that failed Stop.
+A regression test covers refusal after restore and explicit successful rearming.
+Persistence errors are surfaced; this is not a guarantee across browser restarts
+when Chrome cannot save the revocation.

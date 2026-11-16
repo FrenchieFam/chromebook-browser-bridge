@@ -20,6 +20,7 @@ async function show(){
   if(!initialized){el('start-url').value=r.startURL;initialized=true;}
   el('status').textContent=r.tabId!==null?'Connected · '+(r.persistentEnabled?'persistent work tab':'session only')+(r.lastError?' · '+r.lastError:''):r.persistentEnabled?'Waiting for Linux or its work tab.'+(r.lastError?' '+r.lastError:''):'Disconnected. Automatic recovery is paused.';
   expiresAt=r.wake?.active?r.wake.expiresAt:null;
+  el('wake-remote').checked=!!r.wake?.remoteAllowed;el('wake-remote').disabled=changing||r.tabId===null;
   el('wake-start').disabled=changing||r.tabId===null;
   el('wake-duration').disabled=changing;
   countdown();
@@ -46,8 +47,19 @@ el('wake-start').onclick=async()=>{
 };
 el('wake-stop').onclick=async()=>{
  if(changing)return;changing=true;countdown();
- try{await send({action:'wake-stop'});expiresAt=null;el('wake-notice').textContent='Keep-awake stopped. Your normal power settings apply.';}
+ try{await send({action:'wake-stop'});expiresAt=null;el('wake-notice').textContent='Keep-awake stopped; remote timed sessions paused. Your normal power settings apply.';}
  catch(e){el('wake-notice').textContent=e.message;}
+ finally{changing=false;await show();}
+};
+el('wake-remote').onchange=async()=>{
+ if(changing)return;changing=true;
+ const allowed=el('wake-remote').checked;
+ el('wake-remote').disabled=true;
+ try{
+  if(allowed&&!await chrome.permissions.request({permissions:['power']}))throw Error('Power permission declined; remote sessions stay paused.');
+  await send({action:'wake-remote-policy',allowed});
+  el('wake-notice').textContent=allowed?'Paired Linux tools may now manage timed sessions. Stop or Disconnect pauses this.':'Remote timed sessions paused and keep-awake stopped.';
+ }catch(e){el('wake-notice').textContent=e.message;}
  finally{changing=false;await show();}
 };
 show();setInterval(()=>{countdown();show();},1000);

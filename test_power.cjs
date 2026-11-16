@@ -1,15 +1,15 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const {createWakeController}=require('./extension/power.js');
-function fixture(saved={}){
+function fixture(saved={},policy={}){
  let clock=100000,connected=true,permission=true,gate=null,block=false;
- const session={...saved},alarms=new Map(),requests=[];let releases=0;
+ const local={...policy},session={...saved},alarms=new Map(),requests=[];let releases=0;
  const chrome={power:{requestKeepAwake(level){requests.push(level);},releaseKeepAwake(){releases++;}},
  permissions:{async contains(){if(block){block=false;await new Promise(r=>gate=r);}return permission;}},
- storage:{session:{async get(key){return {[key]:session[key]};},async set(data){Object.assign(session,data);},async remove(key){delete session[key];}}},
+ storage:{local:{async get(key){return {[key]:local[key]};},async set(data){Object.assign(local,data);}},session:{async get(key){return {[key]:session[key]};},async set(data){Object.assign(session,data);},async remove(key){delete session[key];}}},
  alarms:{async create(name,settings){alarms.set(name,settings);},async clear(name){alarms.delete(name);}}};
  const controller=createWakeController(chrome,{now:()=>clock,connected:()=>connected});
- return {controller,session,alarms,requests,get releases(){return releases;},clock:value=>clock=value,connect:value=>connected=value,permit:value=>permission=value,gate(){block=true;},releaseGate(){gate();},chrome};
+ return {controller,local,session,alarms,requests,get releases(){return releases;},clock:value=>clock=value,connect:value=>connected=value,permit:value=>permission=value,gate(){block=true;},releaseGate(){gate();},chrome};
 }
 test('off by default, no permission or wake request on status',async()=>{const f=fixture();assert.equal((await f.controller.status()).active,false);assert.equal(f.requests.length,0);});
 test('explicit start requests only system and stores a bounded expiry',async()=>{const f=fixture();const r=await f.controller.start(15);assert.deepEqual(f.requests,['system']);assert.equal(r.expiresAt,100000+900000);assert.equal(f.alarms.get('bridge-wake-expiry').when,r.expiresAt);});
@@ -21,3 +21,22 @@ test('service-worker restart restores only the same unexpired session deadline',
 test('browser-session reset, old/future/corrupt lease and revoked permission stay off',async()=>{for(const value of [undefined,99999,99999999,'500000']){const f=fixture({wakeDeadline:value});await f.controller.restore();assert.equal((await f.controller.status()).active,false);assert.equal(f.requests.length,0);}const f=fixture({wakeDeadline:500000});f.permit(false);await f.controller.restore();assert.equal(f.requests.length,0);});
 test('storage failure after requesting power releases the request',async()=>{const f=fixture();f.chrome.storage.session.set=async()=>{throw Error('storage failed');};await assert.rejects(f.controller.start(15),/storage failed/);assert.equal((await f.controller.status()).active,false);assert.ok(f.releases>0);});
 test('alarm creation failure cannot leave power held or a persisted lease',async()=>{const f=fixture();f.chrome.alarms.create=async()=>{throw Error('alarm failed');};await assert.rejects(f.controller.start(15),/alarm failed/);assert.equal((await f.controller.status()).active,false);assert.equal(f.session.wakeDeadline,undefined);assert.ok(f.releases>0);});
+
+test('remote starts are off by default and cannot grant their own policy',async()=>{const f=fixture();await assert.rejects(f.controller.remoteStart(15),/Remote wake is paused/);assert.equal(f.requests.length,0);assert.equal((await f.controller.status()).remoteAllowed,false);});
+test('owner policy permits bounded remote start/stop and persists across expiry',async()=>{const f=fixture();await f.controller.setRemoteAllowed(true);await f.controller.remoteStart(1);f.clock(160001);await f.controller.status();assert.equal((await f.controller.status()).remoteAllowed,true);await f.controller.remoteStart(15);await f.controller.stop();await f.controller.remoteStart(30);assert.equal((await f.controller.status()).active,true);});
+test('owner stop revokes remote authority and stops in-flight remote activation',async()=>{const f=fixture();await f.controller.setRemoteAllowed(true);f.gate();const attempt=f.controller.remoteStart(15);await new Promise(setImmediate);const stop=f.controller.stop(true);f.releaseGate();await assert.rejects(attempt,/Connection changed/);await stop;assert.equal(f.local.remoteWakeAllowed,false);await assert.rejects(f.controller.remoteStart(1),/paused/);assert.equal(f.requests.length,0);});
+test('owner policy restores across browser sessions but expired leases do not',async()=>{const f=fixture({}, {remoteWakeAllowed:true});await f.controller.restore();assert.equal((await f.controller.status()).remoteAllowed,true);assert.equal((await f.controller.status()).active,false);await f.controller.remoteStart(1);assert.equal(f.requests.length,1);});
+test('revocation and missing optional permission cannot be bypassed',async()=>{const f=fixture();await f.controller.setRemoteAllowed(true);await f.controller.setRemoteAllowed(false);await assert.rejects(f.controller.remoteStart(15),/paused/);f.permit(false);await assert.rejects(f.controller.setRemoteAllowed(true));assert.equal(f.requests.length,0);});
+
+test('failed owner-stop persistence cannot reload stale permission in the same runtime',async()=>{
+ const f=fixture();await f.controller.setRemoteAllowed(true);await f.controller.remoteStart(1);
+ const save=f.chrome.storage.local.set;f.chrome.storage.local.set=async()=>{throw Error('local storage unavailable');};
+ await assert.rejects(f.controller.stop(true),/local storage unavailable/);
+ assert.equal(f.local.remoteWakeAllowed,true);assert.equal((await f.controller.status()).active,false);
+ assert.equal((await f.controller.status()).remoteAllowed,false);
+ await assert.rejects(f.controller.remoteStart(1),/paused/);
+ await f.controller.restore();assert.equal((await f.controller.status()).remoteAllowed,false);
+ await assert.rejects(f.controller.remoteStart(1),/paused/);assert.equal(f.requests.length,1);
+ f.chrome.storage.local.set=save;await f.controller.setRemoteAllowed(true);
+ await f.controller.remoteStart(1);assert.equal(f.requests.length,2);
+});
