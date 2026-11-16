@@ -53,7 +53,7 @@ visibility and CDP delivery do not prove a site's business operation completed.
 ## Optional timed keep-awake (v0.4.0)
 
 The popup offers a timed system-wake session of 1, 15, 30 or 60 minutes with countdown
-and Stop. Power is an optional permission requested only on Enable. Disconnect
+and Stop. Power is an optional permission requested when Enable or Allow remote timed sessions is selected. Disconnect
 and tab loss release it; it does not change ChromeOS power/lock preferences or
 promise closed-lid availability. See [behavior and validation](docs/keep-awake.md).
 A real one-minute expiry and15-minute battery screen-off session passed on Lenovo;
@@ -225,9 +225,9 @@ and [the specific validation record](docs/validation.md).
 
 [MIT](LICENSE). Built by [FrenchieFam](https://github.com/FrenchieFam).
 
-## Remote timed sessions (0.5.0 candidate)
+## Remote timed sessions (v0.5.0)
 
 A paired client can start/renew/stop bounded timers after the owner enables the
 per-device remote allowance. Local Stop/Disconnect pauses it. See
-[the contract and pending validation](docs/remote-wake.md). This does not add
+[the behavior and validation](docs/remote-wake.md). This does not add
 native ChromeOS Settings control or wake a sleeping computer.

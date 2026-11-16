@@ -79,7 +79,7 @@ browser session, and explicit stops invalidate in-flight starts. Expiry relies
 on Chrome event scheduling, not an independent real-time watchdog. Power-request
 status is observable but does not prove actual OS wake or display visibility.
 
-## v0.5.0 candidate remote wake policy
+## v0.5.0 remote wake policy
 
 Remote wake_start/wake_stop are authenticated commands. Starting requires a
 connected work tab, existing Chrome power permission and locally owner-enabled

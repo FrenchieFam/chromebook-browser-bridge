@@ -54,3 +54,13 @@ Do not equate that field with measured OS wake, screen visibility or closed-lid
 availability. Honor Stop/Disconnect. Keep normal screenshot/visibility checks for
 browser input even when a wake session is active. Chrome power/lock settings are
 separate. Never use input loops to manufacture activity or bypass a stop.
+
+## Remote timed sessions — v0.5.0
+
+The optional local Allow remote timed sessions checkbox extends the 0.4.0 model.
+After that per-device opt-in and power grant, browser_wake_start(minutes) or CLI
+wake_start starts/renews an explicit 1/15/30/60-minute request. browser_wake_stop
+releases it while retaining the allowance. Native Stop, unticking the allowance,
+Disconnect or permission removal revokes remote authority. Never silently rearm
+an owner's stop. No automatic renewal loop, sleep wake or boot recovery is added.
+The original popup-only description above applies to 0.4.0.

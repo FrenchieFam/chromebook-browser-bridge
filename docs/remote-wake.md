@@ -1,4 +1,4 @@
-# Remote timed sessions — v0.5.0 candidate
+# Remote timed sessions — v0.5.0
 
 This extends0.4.0's owner-only timer to paired Linux/CLI/MCP clients after the
 owner enables **Allow remote timed sessions** in the device's extension popup.
@@ -33,9 +33,17 @@ bounded system wake sessions while connected. Keep the token private and do not
 expose the bridge publicly. It grants no new native desktop controls or broad
 JavaScript/shell tool. See SECURITY.md for the existing network/account limits.
 
-Validation:29 Python+52 JavaScript tests pass locally. On Lenovo, native reload/owner opt-in and actual remote1-minute start, remote
-stop preserving the allowance, and remote30-minute start passed. Native popup
-Stop revocation remains covered by automated tests rather than a manual0.5.0
-hardware check. Published stable
-feature remains0.4.0 until these are verified. The current portfolio's no-remote-
-enable statement describes0.4.0; update it only when the new version is released.
+Validation: 29 Python and 52 JavaScript tests pass locally and in GitHub CI.
+On Lenovo, native reload and local opt-in plus actual remote one-minute start,
+remote stop preserving the allowance, and 30/60-minute starts passed. The Samsung
+personal installation was ported separately while preserving its pairing and
+start page: 27 Python and the same 52 JavaScript tests passed. Its actual native
+0.5.0 popup was used to allow remote sessions, start remotely, stop remotely,
+restart remotely, and then press native Stop. Status showed the allowance revoked
+and the next remote start was refused. The test allowance was then explicitly
+restored through the native popup and a bounded 60-minute request succeeded.
+
+These are real browser checks plus the earlier 0.4.0 one-minute expiry and
+15-minute screen-off observation; they do not establish unattended boot recovery,
+closed-lid operation or native desktop control. Native support through another
+product is separate from this bridge and is not packaged here.
