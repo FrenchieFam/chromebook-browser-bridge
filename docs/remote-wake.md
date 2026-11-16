@@ -33,7 +33,9 @@ bounded system wake sessions while connected. Keep the token private and do not
 expose the bridge publicly. It grants no new native desktop controls or broad
 JavaScript/shell tool. See SECURITY.md for the existing network/account limits.
 
-Validation:29 Python+52 JavaScript tests pass locally. Native opt-in/reload and
-actual remote-start/stop/owner-revocation validation are pending. Published stable
+Validation:29 Python+52 JavaScript tests pass locally. On Lenovo, native reload/owner opt-in and actual remote1-minute start, remote
+stop preserving the allowance, and remote30-minute start passed. Native popup
+Stop revocation remains covered by automated tests rather than a manual0.5.0
+hardware check. Published stable
 feature remains0.4.0 until these are verified. The current portfolio's no-remote-
 enable statement describes0.4.0; update it only when the new version is released.
