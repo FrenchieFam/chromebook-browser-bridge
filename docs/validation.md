@@ -1,13 +1,13 @@
 # Validation record — v0.5.0
 
-November 15, 2026 (Pacific). The generic source passes 29 Python and 52 JavaScript
+November 15, 2026 (Pacific). The generic source passes 29 Python and 53 JavaScript
 tests locally and in GitHub CI. The feature source also passed the complete suite
 on Lenovo. Its actual 0.5.0 extension passed locally enabled remote one-minute
 start, remote stop with allowance retained, and 30/60-minute bounded requests.
 
 Samsung's separate personal bridge was ported without the generic installer.
 Existing token/config files, host permissions, personal identity and start page
-were retained; its source passed 27 Python and 52 JavaScript tests. The actual
+were retained; its source passed 27 Python and 53 JavaScript tests. The actual
 loaded 0.5.0 extension reconnected to the same work tab. Native popup opt-in,
 remote start/stop/restart, native Stop revocation, refused subsequent remote start,
 explicit native rearming and a bounded 60-minute request all passed. The Stop
@@ -157,3 +157,9 @@ not installed over the original working personal service during packaging.
 
 There is no claim of reliable unattended 24/7 operation, full desktop control,
 production messaging, or exactly-once browser mutations.
+
+A local-policy storage-write failure now keeps remote authority revoked for the
+current worker runtime; stale saved permission cannot undo that failed Stop.
+A regression test covers refusal after restore and explicit successful rearming.
+Persistence errors are surfaced; this is not a guarantee across browser restarts
+when Chrome cannot save the revocation.

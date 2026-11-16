@@ -2,7 +2,7 @@
 // Bounded leases; remote starts require a separately owner-enabled local policy.
 function createWakeController(chrome,{now=()=>Date.now(),connected=()=>false}={}){
  const ALARM='bridge-wake-expiry',KEY='wakeDeadline',DURATIONS=[1,15,30,60];
- let deadline=0,generation=0,remoteAllowed=false,serial=Promise.resolve();
+ let deadline=0,generation=0,remoteAllowed=false,revokedInRuntime=false,serial=Promise.resolve();
  const enqueue=fn=>{const next=serial.catch(()=>{}).then(fn);serial=next;return next;};
  const info=()=>({active:deadline>now(),expiresAt:deadline||null,remainingSeconds:Math.max(0,Math.ceil((deadline-now())/1000)),level:'system',remoteAllowed});
  async function release(){
@@ -12,6 +12,8 @@ function createWakeController(chrome,{now=()=>Date.now(),connected=()=>false}={}
   await Promise.all([chrome.storage.session.remove(KEY),chrome.alarms.clear(ALARM)]);
  }
  function stop(revoke=false){
+  // A failed persistence write must not let stale saved policy undo this stop.
+  if(revoke){revokedInRuntime=true;remoteAllowed=false;}
   generation++;
   return enqueue(async()=>{
    if(revoke){remoteAllowed=false;try{await chrome.storage.local.set({remoteWakeAllowed:false});}finally{await release();}}
@@ -25,8 +27,9 @@ function createWakeController(chrome,{now=()=>Date.now(),connected=()=>false}={}
   return enqueue(async()=>{
    if(!connected()||!await chrome.permissions.contains({permissions:['power']}))throw Error('Connect a work tab and grant power permission first');
    if(ticket!==generation)throw Error('Authorization changed');
-   await chrome.storage.local.set({remoteWakeAllowed:true});remoteAllowed=true;
+   await chrome.storage.local.set({remoteWakeAllowed:true});
    if(ticket!==generation)throw Error('Authorization changed');
+   revokedInRuntime=false;remoteAllowed=true;
    return info();
   });
  }
@@ -35,6 +38,7 @@ function createWakeController(chrome,{now=()=>Date.now(),connected=()=>false}={}
   return enqueue(async()=>{
    if(!DURATIONS.includes(minutes))throw Error('Choose 1, 15, 30 or 60 minutes');
    if(remote){
+    if(revokedInRuntime)throw Error('Remote wake is paused. Enable Allow remote timed sessions in the popup.');
     const policy=await chrome.storage.local.get('remoteWakeAllowed');
     remoteAllowed=policy.remoteWakeAllowed===true;
     if(!remoteAllowed)throw Error('Remote wake is paused. Enable Allow remote timed sessions in the popup.');
@@ -55,7 +59,7 @@ function createWakeController(chrome,{now=()=>Date.now(),connected=()=>false}={}
  function restore(){
   const ticket=generation;
   return enqueue(async()=>{
-   remoteAllowed=(await chrome.storage.local.get('remoteWakeAllowed')).remoteWakeAllowed===true;
+   remoteAllowed=!revokedInRuntime&&(await chrome.storage.local.get('remoteWakeAllowed')).remoteWakeAllowed===true;
    const saved=(await chrome.storage.session.get(KEY))[KEY];
    const valid=Number.isFinite(saved)&&saved>now()&&saved<=now()+60*60000;
    if(ticket!==generation||!valid||!connected()||!await chrome.permissions.contains({permissions:['power']})){

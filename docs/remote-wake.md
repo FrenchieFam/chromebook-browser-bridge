@@ -33,11 +33,11 @@ bounded system wake sessions while connected. Keep the token private and do not
 expose the bridge publicly. It grants no new native desktop controls or broad
 JavaScript/shell tool. See SECURITY.md for the existing network/account limits.
 
-Validation: 29 Python and 52 JavaScript tests pass locally and in GitHub CI.
+Validation: 29 Python and 53 JavaScript tests pass locally and in GitHub CI.
 On Lenovo, native reload and local opt-in plus actual remote one-minute start,
 remote stop preserving the allowance, and 30/60-minute starts passed. The Samsung
 personal installation was ported separately while preserving its pairing and
-start page: 27 Python and the same 52 JavaScript tests passed. Its actual native
+start page: 27 Python and the same 53 JavaScript tests passed. Its actual native
 0.5.0 popup was used to allow remote sessions, start remotely, stop remotely,
 restart remotely, and then press native Stop. Status showed the allowance revoked
 and the next remote start was refused. The test allowance was then explicitly
@@ -47,3 +47,9 @@ These are real browser checks plus the earlier 0.4.0 one-minute expiry and
 15-minute screen-off observation; they do not establish unattended boot recovery,
 closed-lid operation or native desktop control. Native support through another
 product is separate from this bridge and is not packaged here.
+
+A local-policy storage-write failure now keeps remote authority revoked for the
+current worker runtime; stale saved permission cannot undo that failed Stop.
+A regression test covers refusal after restore and explicit successful rearming.
+Persistence errors are surfaced; this is not a guarantee across browser restarts
+when Chrome cannot save the revocation.
